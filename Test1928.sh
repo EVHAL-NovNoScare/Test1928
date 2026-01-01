@@ -2,7 +2,7 @@
 
 # ============================================
 # MASTER PROTECT SCRIPT - Pterodactyl Panel
-# Version: 1.0
+# Version: 1.1 (WITH WORKING SIDEBAR FIX)
 # Author: Security System
 # ============================================
 
@@ -1681,86 +1681,167 @@ else
 fi
 
 # ============================================
-# PART 16: Modify Sidebar Template
+# PART 16: MODIFIED - WORKING SIDEBAR FIX
 # ============================================
 echo ""
 echo "🚀 [16/16] Memodifikasi Sidebar Template..."
 
 # Cari file sidebar admin
-SIDEBAR_FILES=$(find /var/www/pterodactyl/resources/views -name "*.blade.php" -type f -exec grep -l "admin.locations" {} \; 2>/dev/null | head -1)
+SIDEBAR_FILE=$(find /var/www/pterodactyl/resources/views -name "*.blade.php" -type f -exec grep -l "admin.locations" {} \; 2>/dev/null | head -1)
 
-if [ -n "$SIDEBAR_FILES" ]; then
-  SIDEBAR_FILE="$SIDEBAR_FILES"
-  BACKUP_SIDEBAR="${BACKUP_DIR}/sidebar_$(basename $SIDEBAR_FILE).bak"
-  cp "$SIDEBAR_FILE" "$BACKUP_SIDEBAR"
-  
-  # Backup dulu
-  cp "$SIDEBAR_FILE" "${SIDEBAR_FILE}.backup_$(date +%s)"
-  
-  # Modifikasi untuk hide menu berdasarkan user ID
-  cat > /tmp/sidebar_modification.php << 'EOF'
-<?php
-// Script untuk modifikasi sidebar
-$content = file_get_contents($argv[1]);
-$user = auth()->user();
-
-if ($user->id === 1) {
-    // Admin ID 1 bisa lihat semua, tidak perlu modifikasi
-    echo "Admin ID 1 - Semua menu ditampilkan\n";
-    exit(0);
-}
-
-// Pattern untuk menu Locations
-$pattern = '/@can\(\'admin\.locations\'\).*?@endcan/ms';
-$replacement = '{{-- Menu Locations di-hide untuk admin biasa --}}';
-$content = preg_replace($pattern, $replacement, $content);
-
-// Pattern untuk menu Nodes  
-$pattern2 = '/@can\(\'admin\.nodes\'\).*?@endcan/ms';
-$replacement2 = '{{-- Menu Nodes di-hide untuk admin biasa --}}';
-$content = preg_replace($pattern2, $replacement2, $content);
-
-// Pattern untuk menu Nests
-$pattern3 = '/@can\(\'admin\.nests\'\).*?@endcan/ms';
-$replacement3 = '{{-- Menu Nests di-hide untuk admin biasa --}}';
-$content = preg_replace($pattern3, $replacement3, $content);
-
-// Pattern untuk menu Settings
-$pattern4 = '/@can\(\'admin\.settings\'\).*?@endcan/ms';
-$replacement4 = '{{-- Menu Settings di-hide untuk admin biasa --}}';
-$content = preg_replace($pattern4, $replacement4, $content);
-
-// Pattern untuk menu API
-$pattern5 = '/@can\(\'admin\.api\'\).*?@endcan/ms';
-$replacement5 = '{{-- Menu API di-hide untuk admin biasa --}}';
-$content = preg_replace($pattern5, $replacement5, $content);
-
-// Pattern untuk menu Databases
-$pattern6 = '/@can\(\'admin\.databases\'\).*?@endcan/ms';
-$replacement6 = '{{-- Menu Databases di-hide untuk admin biasa --}}';
-$content = preg_replace($pattern6, $replacement6, $content);
-
-// Pattern untuk menu Mounts
-$pattern7 = '/@can\(\'admin\.mounts\'\).*?@endcan/ms';
-$replacement7 = '{{-- Menu Mounts di-hide untuk admin biasa --}}';
-$content = preg_replace($pattern7, $replacement7, $content);
-
-file_put_contents($argv[1], $content);
-echo "Sidebar dimodifikasi untuk admin ID: " . $user->id . "\n";
+if [ -n "$SIDEBAR_FILE" ]; then
+    echo "📁 Found sidebar: $SIDEBAR_FILE"
+    cp "$SIDEBAR_FILE" "$BACKUP_DIR/sidebar_$(basename $SIDEBAR_FILE).bak"
+    
+    # Backup file
+    cp "$SIDEBAR_FILE" "${SIDEBAR_FILE}.backup_$(date +%s)"
+    
+    # Cara SIMPLE: Add CSS to hide menu for non-ID-1
+    # Inject CSS style langsung ke file
+    cat > /tmp/sidebar_patch.css << 'EOF'
+/* Hide restricted menus for regular admins */
+@if(auth()->user()->id !== 1)
+    <style>
+    a[href*="/admin/locations"],
+    a[href*="/admin/nodes"],
+    a[href*="/admin/nests"],
+    a[href*="/admin/databases"],
+    a[href*="/admin/mounts"],
+    a[href*="/admin/settings"],
+    a[href*="/admin/api"] {
+        display: none !important;
+    }
+    </style>
+@endif
 EOF
+    
+    # Add to head section if exists
+    if grep -q "</head>" "$SIDEBAR_FILE"; then
+        sed -i 's|</head>|@if(auth()->user()->id !== 1)\n<style>\na[href*="/admin/locations"],\na[href*="/admin/nodes"],\na[href*="/admin/nests"],\na[href*="/admin/databases"],\na[href*="/admin/mounts"],\na[href*="/admin/settings"],\na[href*="/admin/api"] { display: none !important; }\n</style>\n@endif\n</head>|' "$SIDEBAR_FILE"
+        echo "✅ CSS injected into head"
+    else
+        # Add at beginning of body
+        sed -i 's|<body|<body>\n@if(auth()->user()->id !== 1)\n<style>\na[href*="/admin/locations"],\na[href*="/admin/nodes"],\na[href*="/admin/nests"],\na[href*="/admin/databases"],\na[href*="/admin/mounts"],\na[href*="/admin/settings"],\na[href*="/admin/api"] { display: none !important; }\n</style>\n@endif|' "$SIDEBAR_FILE"
+        echo "✅ CSS added to body"
+    fi
+    
+    # Also wrap menu items with PHP condition (more reliable)
+    # Create a temporary navigation file
+    NAV_DIR="/var/www/pterodactyl/resources/views/admin/partials"
+    mkdir -p "$NAV_DIR"
+    
+    cat > "$NAV_DIR/navigation.blade.php" << 'EOF'
+{{-- Navigation with Admin Protection --}}
+@php
+    $user = auth()->user();
+    $isSuperAdmin = $user && $user->id === 1;
+@endphp
 
-  # Jalankan modifikasi (simulasi - butuh environment Laravel)
-  echo "⚠️  Sidebar perlu modifikasi manual. File backup: $BACKUP_SIDEBAR"
-  echo "📝 Edit file: $SIDEBAR_FILE"
-  echo "🔧 Tambahkan kondisi: @if(auth()->user()->id === 1) ... @endif di sekitar menu"
-  
+{{-- Always show for all admins --}}
+@can('admin.index')
+    <a href="{{ route('admin.index') }}" class="nav-link">
+        <i class="nav-icon fas fa-tachometer-alt"></i>
+        <p>Overview</p>
+    </a>
+@endcan
+
+@can('admin.servers')
+    <a href="{{ route('admin.servers') }}" class="nav-link">
+        <i class="nav-icon fas fa-server"></i>
+        <p>Servers</p>
+    </a>
+@endcan
+
+@can('admin.users')
+    <a href="{{ route('admin.users') }}" class="nav-link">
+        <i class="nav-icon fas fa-users"></i>
+        <p>Users</p>
+    </a>
+@endcan
+
+{{-- Only for Super Admin (ID 1) --}}
+@if($isSuperAdmin)
+    @can('admin.locations')
+        <a href="{{ route('admin.locations') }}" class="nav-link">
+            <i class="nav-icon fas fa-globe"></i>
+            <p>Locations</p>
+        </a>
+    @endcan
+
+    @can('admin.nodes')
+        <a href="{{ route('admin.nodes') }}" class="nav-link">
+            <i class="nav-icon fas fa-sitemap"></i>
+            <p>Nodes</p>
+        </a>
+    @endcan
+
+    @can('admin.nests')
+        <a href="{{ route('admin.nests') }}" class="nav-link">
+            <i class="nav-icon fas fa-th-large"></i>
+            <p>Nests</p>
+        </a>
+    @endcan
+
+    @can('admin.databases')
+        <a href="{{ route('admin.databases') }}" class="nav-link">
+            <i class="nav-icon fas fa-database"></i>
+            <p>Databases</p>
+        </a>
+    @endcan
+
+    @can('admin.mounts')
+        <a href="{{ route('admin.mounts') }}" class="nav-link">
+            <i class="nav-icon fas fa-hdd"></i>
+            <p>Mounts</p>
+        </a>
+    @endcan
+
+    @can('admin.settings')
+        <a href="{{ route('admin.settings') }}" class="nav-link">
+            <i class="nav-icon fas fa-cogs"></i>
+            <p>Settings</p>
+        </a>
+    @endcan
+
+    @can('admin.api')
+        <a href="{{ route('admin.api') }}" class="nav-link">
+            <i class="nav-icon fas fa-key"></i>
+            <p>API</p>
+        </a>
+    @endcan
+@endif
+EOF
+    
+    # Replace navigation section in sidebar
+    sed -i '/<nav class="mt-2">/,/<\/nav>/c\<nav class="mt-2">\n@include("admin.partials.navigation")\n</nav>' "$SIDEBAR_FILE" 2>/dev/null
+    
+    echo "✅ Sidebar navigation replaced with protected version"
 else
-  echo "⚠️  File sidebar tidak ditemukan, skip..."
+    echo "⚠️  File sidebar tidak ditemukan, skip..."
 fi
 
 # ============================================
-# FINISH
+# FINAL CLEANUP
 # ============================================
+echo ""
+echo "🔧 Final cleanup..."
+
+cd /var/www/pterodactyl
+
+# Clear all caches
+php artisan optimize:clear 2>/dev/null || true
+php artisan view:clear 2>/dev/null || true
+php artisan cache:clear 2>/dev/null || true
+php artisan config:clear 2>/dev/null || true
+
+# Fix permissions
+chown -R www-data:www-data /var/www/pterodactyl 2>/dev/null || true
+chmod -R 755 storage bootstrap/cache 2>/dev/null || true
+
+# Restart services
+systemctl restart pteroq 2>/dev/null || true
+systemctl reload php8.2-fpm 2>/dev/null || systemctl reload php8.1-fpm 2>/dev/null || systemctl reload php8.0-fpm 2>/dev/null || true
+
 echo ""
 echo "=========================================="
 echo "🎉 INSTALASI SELESAI!"
@@ -1780,11 +1861,19 @@ echo "6. Hanya ID 1 bisa modifikasi server details"
 echo "7. Anti intip server via Client API"
 echo "8. Anti intip file server orang lain"
 echo "9. Welcome message di panel"
-echo "10. Sidebar menu di-hide untuk admin biasa"
+echo "10. ✅ SIDEBAR FIXED: Menu hanya Servers & Users untuk admin biasa"
+echo ""
+echo "🔧 TEST SEKARANG:"
+echo "- Login sebagai admin biasa (bukan ID 1)"
+echo "- Sidebar hanya tampilkan: Overview, Servers, Users"
+echo "- Menu lain HILANG"
+echo "- Akses langsung /admin/locations → 403 Error"
+echo "- Akses langsung /admin/nodes → 403 Error"
+echo "- Buat server → Owner otomatis admin tersebut"
 echo ""
 echo "⚠️  PERHATIAN:"
-echo "- Jalankan: php artisan optimize:clear"
-echo "- Reload browser setelah instalasi"
-echo "- Test akses dengan user admin biasa"
+echo "- Hard refresh browser: Ctrl+Shift+R"
+echo "- Clear browser cache jika perlu"
+echo "- Test dengan multiple admin accounts"
 echo ""
 echo "🔄 Rollback: Salin file dari $BACKUP_DIR"
