@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # ============================================
-# MASTER PROTECT SCRIPT - Pterodactyl Panel
-# Version: 1.1 (WITH WORKING SIDEBAR FIX)
+# MASTER PROTECT SCRIPT - Pterodactyl Panel  
+# Version: 3.0 (WITH AUTO-OWNER FIX)
 # Author: Security System
 # ============================================
 
-echo "🛡️  MEMULAI INSTALASI SISTEM PROTEKSI FULL"
+echo "🛡️  MEMULAI INSTALASI SISTEM PROTEKSI FULL V3"
 echo "=========================================="
 sleep 2
 
@@ -19,7 +19,7 @@ echo "📦 Backup directory: $BACKUP_DIR"
 # PART 1: ServerDeletionService.php
 # ============================================
 echo ""
-echo "🚀 [1/16] Memasang ServerDeletionService.php..."
+echo "🚀 [1/18] Memasang ServerDeletionService.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Services/Servers/ServerDeletionService.php"
 BACKUP_PATH="${BACKUP_DIR}/ServerDeletionService.php.bak"
@@ -141,7 +141,7 @@ echo "✅ ServerDeletionService.php installed"
 # PART 2: UserController.php
 # ============================================
 echo ""
-echo "🚀 [2/16] Memasang UserController.php..."
+echo "🚀 [2/18] Memasang UserController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Admin/UserController.php"
 BACKUP_PATH="${BACKUP_DIR}/UserController.php.bak"
@@ -386,7 +386,7 @@ echo "✅ UserController.php installed"
 # PART 3: LocationController.php
 # ============================================
 echo ""
-echo "🚀 [3/16] Memasang LocationController.php..."
+echo "🚀 [3/18] Memasang LocationController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Admin/LocationController.php"
 BACKUP_PATH="${BACKUP_DIR}/LocationController.php.bak"
@@ -540,7 +540,7 @@ echo "✅ LocationController.php installed"
 # PART 4: NodeController.php (Admin/Nodes)
 # ============================================
 echo ""
-echo "🚀 [4/16] Memasang NodeController.php..."
+echo "🚀 [4/18] Memasang NodeController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Admin/Nodes/NodeController.php"
 BACKUP_PATH="${BACKUP_DIR}/NodeController.php.bak"
@@ -604,7 +604,7 @@ echo "✅ NodeController.php installed"
 # PART 5: NestController.php
 # ============================================
 echo ""
-echo "🚀 [5/16] Memasang NestController.php..."
+echo "🚀 [5/18] Memasang NestController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Admin/Nests/NestController.php"
 BACKUP_PATH="${BACKUP_DIR}/NestController.php.bak"
@@ -759,7 +759,7 @@ echo "✅ NestController.php installed"
 # PART 6: Settings IndexController.php
 # ============================================
 echo ""
-echo "🚀 [6/16] Memasang Settings IndexController.php..."
+echo "🚀 [6/18] Memasang Settings IndexController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Admin/Settings/IndexController.php"
 BACKUP_PATH="${BACKUP_DIR}/IndexController.php.bak"
@@ -855,7 +855,7 @@ echo "✅ Settings IndexController.php installed"
 # PART 7: FileController.php (Client API)
 # ============================================
 echo ""
-echo "🚀 [7/16] Memasang FileController.php..."
+echo "🚀 [7/18] Memasang FileController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Api/Client/Servers/FileController.php"
 BACKUP_PATH="${BACKUP_DIR}/FileController.php.bak"
@@ -1123,7 +1123,7 @@ echo "✅ FileController.php installed"
 # PART 8: ServerController.php (Client API)
 # ============================================
 echo ""
-echo "🚀 [8/16] Memasang ServerController.php..."
+echo "🚀 [8/18] Memasang ServerController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Api/Client/Servers/ServerController.php"
 BACKUP_PATH="${BACKUP_DIR}/ServerController.php.bak"
@@ -1187,7 +1187,7 @@ echo "✅ ServerController.php installed"
 # PART 9: DetailsModificationService.php
 # ============================================
 echo ""
-echo "🚀 [9/16] Memasang DetailsModificationService.php..."
+echo "🚀 [9/18] Memasang DetailsModificationService.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Services/Servers/DetailsModificationService.php"
 BACKUP_PATH="${BACKUP_DIR}/DetailsModificationService.php.bak"
@@ -1265,7 +1265,7 @@ echo "✅ DetailsModificationService.php installed"
 # PART 10: core.blade.php (Welcome Message)
 # ============================================
 echo ""
-echo "🚀 [10/16] Memasang core.blade.php..."
+echo "🚀 [10/18] Memasang core.blade.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/resources/views/templates/base/core.blade.php"
 BACKUP_PATH="${BACKUP_DIR}/core.blade.php.bak"
@@ -1322,7 +1322,7 @@ echo "✅ core.blade.php installed"
 # PART 11: NodesController.php (Main Nodes)
 # ============================================
 echo ""
-echo "🚀 [11/16] Memasang NodesController.php..."
+echo "🚀 [11/18] Memasang NodesController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Admin/NodesController.php"
 BACKUP_PATH="${BACKUP_DIR}/NodesController.php.bak"
@@ -1451,7 +1451,7 @@ echo "✅ NodesController.php installed"
 # PART 12: ApiController.php
 # ============================================
 echo ""
-echo "🚀 [12/16] Memasang ApiController.php..."
+echo "🚀 [12/18] Memasang ApiController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Admin/ApiController.php"
 BACKUP_PATH="${BACKUP_DIR}/ApiController.php.bak"
@@ -1559,7 +1559,7 @@ echo "✅ ApiController.php installed"
 # PART 13: ServersController.php (Admin)
 # ============================================
 echo ""
-echo "🚀 [13/16] Memasang ServersController.php..."
+echo "🚀 [13/18] Memasang ServersController.php..."
 
 REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Admin/ServersController.php"
 BACKUP_PATH="${BACKUP_DIR}/ServersController.php.bak"
@@ -1634,7 +1634,7 @@ fi
 # PART 14: DatabaseController.php Protection
 # ============================================
 echo ""
-echo "🚀 [14/16] Memasang proteksi DatabaseController..."
+echo "🚀 [14/18] Memasang proteksi DatabaseController..."
 
 # Cari file DatabaseController
 DB_FILES=$(find /var/www/pterodactyl -name "*DatabaseController.php" -type f 2>/dev/null | head -1)
@@ -1659,7 +1659,7 @@ fi
 # PART 15: MountController.php Protection
 # ============================================
 echo ""
-echo "🚀 [15/16] Memasang proteksi MountController..."
+echo "🚀 [15/18] Memasang proteksi MountController..."
 
 # Cari file MountController
 MOUNT_FILES=$(find /var/www/pterodactyl -name "*Mount*Controller.php" -type f 2>/dev/null | head -1)
@@ -1684,7 +1684,7 @@ fi
 # PART 16: MODIFIED - WORKING SIDEBAR FIX
 # ============================================
 echo ""
-echo "🚀 [16/16] Memodifikasi Sidebar Template..."
+echo "🚀 [16/18] Memodifikasi Sidebar Template..."
 
 # Cari file sidebar admin
 SIDEBAR_FILE=$(find /var/www/pterodactyl/resources/views -name "*.blade.php" -type f -exec grep -l "admin.locations" {} \; 2>/dev/null | head -1)
@@ -1818,6 +1818,108 @@ EOF
     echo "✅ Sidebar navigation replaced with protected version"
 else
     echo "⚠️  File sidebar tidak ditemukan, skip..."
+fi
+
+# ============================================
+# PART 17: AUTO OWNER FIX - SERVER CREATION
+# ============================================
+echo ""
+echo "🚀 [17/18] Memperbaiki Auto Owner Detection..."
+
+# Cari file create server blade
+CREATE_BLADE=$(find /var/www/pterodactyl -name "*.blade.php" -type f -exec grep -l "Server Owner" {} \; 2>/dev/null | head -1)
+
+if [ -n "$CREATE_BLADE" ]; then
+    echo "📁 Found create server form: $CREATE_BLADE"
+    cp "$CREATE_BLADE" "${BACKUP_DIR}/create_server.blade.bak"
+    
+    # Backup dulu
+    cp "$CREATE_BLADE" "${CREATE_BLADE}.backup_$(date +%s)"
+    
+    # Auto-set owner to current user
+    # Replace owner dropdown with hidden input
+    cat > /tmp/auto_owner_fix.php << 'EOF'
+<?php
+$file = file_get_contents($argv[1]);
+
+// Pattern untuk owner selection
+$patterns = [
+    // Pattern untuk select dropdown
+    '/<select[^>]*name="owner_id"[^>]*>.*?<\/select>/s',
+    // Pattern untuk select dengan Server Owner label
+    '/(<div[^>]*>.*?Server Owner.*?<select[^>]*>.*?<\/select>.*?<\/div>)/s',
+    // Pattern untuk user selection
+    '/(<label[^>]*>.*?Server Owner.*?<\/label>.*?<select[^>]*name="owner_id"[^>]*>.*?<\/select>)/s'
+];
+
+$replacement = '
+<div class="form-group">
+    <label for="owner_id" class="form-label">Server Owner</label>
+    <div class="input-group">
+        <input type="text" class="form-control" value="' . htmlspecialchars(auth()->user()->email ?? auth()->user()->username) . '" readonly disabled>
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-user-check"></i></span>
+        </div>
+    </div>
+    <p class="small text-muted mt-1">Server akan otomatis menjadi milik Anda.</p>
+    <input type="hidden" name="owner_id" value="' . (auth()->user()->id ?? 0) . '">
+</div>';
+
+foreach ($patterns as $pattern) {
+    if (preg_match($pattern, $file)) {
+        $file = preg_replace($pattern, $replacement, $file);
+        echo "Replaced owner selection with auto-owner\n";
+        break;
+    }
+}
+
+// Juga ganti text yang menunjukkan "automatically"
+$file = preg_replace('/This server will be owned by your account automatically\./i', 'This server will be owned by <strong>' . htmlspecialchars(auth()->user()->email ?? auth()->user()->username) . '</strong> (your account).', $file);
+
+file_put_contents($argv[1], $file);
+EOF
+    
+    # Apply the fix
+    php /tmp/auto_owner_fix.php "$CREATE_BLADE"
+    echo "✅ Auto-owner fix applied to create server form"
+    
+    # Also modify the controller to auto-set owner
+    SERVER_STORE_FILE="/var/www/pterodactyl/app/Http/Controllers/Admin/ServersController.php"
+    if [ ! -f "$SERVER_STORE_FILE" ]; then
+        SERVER_STORE_FILE="/var/www/pterodactyl/app/Http/Controllers/Admin/Servers/ServerController.php"
+    fi
+    
+    if [ -f "$SERVER_STORE_FILE" ]; then
+        # Backup controller
+        cp "$SERVER_STORE_FILE" "${BACKUP_DIR}/server_controller.bak"
+        
+        # Force owner_id to current user in store method
+        sed -i '/public function store/,/^[[:space:]]*}/{
+            /owner_id/!s/return.*creationService->handle/\/\/ Auto-set owner to current user\n        $data = $request->all();\n        $data["owner_id"] = auth()->user()->id;\n        \n        return $this->creationService->handle($data);/
+        }' "$SERVER_STORE_FILE"
+        
+        echo "✅ Controller modified to auto-set owner"
+    fi
+else
+    echo "⚠️  Create server form not found"
+fi
+
+# ============================================
+# PART 18: SERVER CREATION SERVICE AUTO OWNER
+# ============================================
+echo ""
+echo "🚀 [18/18] Memodifikasi ServerCreationService..."
+
+SERVER_CREATION_SERVICE="/var/www/pterodactyl/app/Services/Servers/ServerCreationService.php"
+if [ -f "$SERVER_CREATION_SERVICE" ]; then
+    cp "$SERVER_CREATION_SERVICE" "${BACKUP_DIR}/ServerCreationService.bak"
+    
+    # Auto-set owner_id jika tidak diset
+    sed -i '/public function handle/,/^[[:space:]]*}/{
+        /owner_id/!s/\$data\[.owner_id.\] =/\/\/ Auto-set owner jika tidak ada\n        if (!isset($data["owner_id"]) || empty($data["owner_id"])) {\n            $data["owner_id"] = auth()->check() ? auth()->user()->id : 1;\n        }\n        $data["owner_id"] =/
+    }' "$SERVER_CREATION_SERVICE"
+    
+    echo "✅ ServerCreationService modified"
 fi
 
 # ============================================
