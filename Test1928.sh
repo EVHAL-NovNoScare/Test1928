@@ -1837,20 +1837,13 @@ if [ -n "$CREATE_BLADE" ]; then
     cp "$CREATE_BLADE" "${CREATE_BLADE}.backup_$(date +%s)"
     
     # Auto-set owner to current user
-    # Replace owner dropdown with hidden input
-    cat > /tmp/auto_owner_fix.php << 'EOF'
+    # Replace owner dropdown dengan hidden input dan display current user
+    cat > /tmp/fix_owner.blade.php << 'EOF'
 <?php
-$file = file_get_contents($argv[1]);
+$content = file_get_contents($argv[1]);
 
-// Pattern untuk owner selection
-$patterns = [
-    // Pattern untuk select dropdown
-    '/<select[^>]*name="owner_id"[^>]*>.*?<\/select>/s',
-    // Pattern untuk select dengan Server Owner label
-    '/(<div[^>]*>.*?Server Owner.*?<select[^>]*>.*?<\/select>.*?<\/div>)/s',
-    // Pattern untuk user selection
-    '/(<label[^>]*>.*?Server Owner.*?<\/label>.*?<select[^>]*name="owner_id"[^>]*>.*?<\/select>)/s'
-];
+// Pattern untuk find owner selection (modern Pterodactyl)
+$pattern = '/(<div[^>]*class=".*?form-group.*?"[^>]*>\s*<label[^>]*>.*?Server Owner.*?<\/label>.*?<select[^>]*name="owner_id"[^>]*>.*?<\/select>.*?<\/div>)/s';
 
 $replacement = '
 <div class="form-group">
@@ -1861,47 +1854,73 @@ $replacement = '
             <span class="input-group-text"><i class="fas fa-user-check"></i></span>
         </div>
     </div>
-    <p class="small text-muted mt-1">Server akan otomatis menjadi milik Anda.</p>
+    <p class="small text-muted mt-1"><i class="fas fa-info-circle mr-1"></i> This server will be owned by your account automatically.</p>
     <input type="hidden" name="owner_id" value="' . (auth()->user()->id ?? 0) . '">
 </div>';
 
-foreach ($patterns as $pattern) {
-    if (preg_match($pattern, $file)) {
-        $file = preg_replace($pattern, $replacement, $file);
-        echo "Replaced owner selection with auto-owner\n";
-        break;
+if (preg_match($pattern, $content)) {
+    $content = preg_replace($pattern, $replacement, $content);
+    echo "✅ Owner selection replaced with auto-owner (Modern UI)\n";
+    
+    // Also replace any text about "automatically"
+    $content = preg_replace('/This server will be owned by your account automatically\./i', '', $content);
+} else {
+    // Try alternative pattern (older UI)
+    $pattern2 = '/(<label[^>]*for="owner_id"[^>]*>.*?<\/label>.*?<select[^>]*id="owner_id"[^>]*name="owner_id"[^>]*>.*?<\/select>)/s';
+    
+    if (preg_match($pattern2, $content)) {
+        $content = preg_replace($pattern2, $replacement, $content);
+        echo "✅ Owner selection replaced with auto-owner (Older UI)\n";
+    } else {
+        // Last attempt: find any select with name="owner_id"
+        $pattern3 = '/(<select[^>]*name="owner_id"[^>]*>.*?<\/select>)/s';
+        if (preg_match($pattern3, $content)) {
+            $content = preg_replace($pattern3, $replacement, $content);
+            echo "✅ Owner selection replaced (generic pattern)\n";
+        } else {
+            echo "❌ Could not find owner selection field\n";
+            exit(1);
+        }
     }
 }
 
-// Juga ganti text yang menunjukkan "automatically"
-$file = preg_replace('/This server will be owned by your account automatically\./i', 'This server will be owned by <strong>' . htmlspecialchars(auth()->user()->email ?? auth()->user()->username) . '</strong> (your account).', $file);
-
-file_put_contents($argv[1], $file);
+file_put_contents($argv[1], $content);
 EOF
     
     # Apply the fix
-    php /tmp/auto_owner_fix.php "$CREATE_BLADE"
-    echo "✅ Auto-owner fix applied to create server form"
+    php /tmp/fix_owner.blade.php "$CREATE_BLADE"
     
-    # Also modify the controller to auto-set owner
-    SERVER_STORE_FILE="/var/www/pterodactyl/app/Http/Controllers/Admin/ServersController.php"
-    if [ ! -f "$SERVER_STORE_FILE" ]; then
-        SERVER_STORE_FILE="/var/www/pterodactyl/app/Http/Controllers/Admin/Servers/ServerController.php"
-    fi
-    
-    if [ -f "$SERVER_STORE_FILE" ]; then
-        # Backup controller
-        cp "$SERVER_STORE_FILE" "${BACKUP_DIR}/server_controller.bak"
+    if [ $? -eq 0 ]; then
+        echo "✅ Auto-owner fix applied to create server form"
         
-        # Force owner_id to current user in store method
-        sed -i '/public function store/,/^[[:space:]]*}/{
-            /owner_id/!s/return.*creationService->handle/\/\/ Auto-set owner to current user\n        $data = $request->all();\n        $data["owner_id"] = auth()->user()->id;\n        \n        return $this->creationService->handle($data);/
-        }' "$SERVER_STORE_FILE"
+        # Also modify the controller to force owner_id
+        SERVER_STORE_FILE="/var/www/pterodactyl/app/Http/Controllers/Admin/Servers/StoreServerController.php"
+        if [ ! -f "$SERVER_STORE_FILE" ]; then
+            SERVER_STORE_FILE="/var/www/pterodactyl/app/Http/Controllers/Admin/ServersController.php"
+        fi
         
-        echo "✅ Controller modified to auto-set owner"
+        if [ -f "$SERVER_STORE_FILE" ]; then
+            # Backup controller
+            cp "$SERVER_STORE_FILE" "${BACKUP_DIR}/server_store_controller.bak"
+            
+            # Cari store method dan tambahkan auto-set owner
+            sed -i '/public function store/,/^[[:space:]]*}/{
+                /handle.*request/{
+                    a\        // Auto-set owner to current user
+                    a\        $data = $request->validated();
+                    a\        $data["owner_id"] = auth()->user()->id;
+                    a\
+                }
+                s/handle.*request/handle($data)/
+            }' "$SERVER_STORE_FILE"
+            
+            echo "✅ Controller modified to auto-set owner"
+        fi
+    else
+        echo "⚠️ Failed to apply auto-owner fix"
     fi
 else
-    echo "⚠️  Create server form not found"
+    echo "⚠️ Create server form not found"
 fi
 
 # ============================================
@@ -1914,12 +1933,21 @@ SERVER_CREATION_SERVICE="/var/www/pterodactyl/app/Services/Servers/ServerCreatio
 if [ -f "$SERVER_CREATION_SERVICE" ]; then
     cp "$SERVER_CREATION_SERVICE" "${BACKUP_DIR}/ServerCreationService.bak"
     
-    # Auto-set owner_id jika tidak diset
+    # Backup original
+    cp "$SERVER_CREATION_SERVICE" "${SERVER_CREATION_SERVICE}.backup"
+    
+    # Auto-set owner_id jika tidak diset atau jika user bukan ID 1
     sed -i '/public function handle/,/^[[:space:]]*}/{
-        /owner_id/!s/\$data\[.owner_id.\] =/\/\/ Auto-set owner jika tidak ada\n        if (!isset($data["owner_id"]) || empty($data["owner_id"])) {\n            $data["owner_id"] = auth()->check() ? auth()->user()->id : 1;\n        }\n        $data["owner_id"] =/
+        /owner_id/!{
+            /\$data =/a\
+        // Auto-set owner jika bukan admin ID 1\
+        if (!isset($data["owner_id"]) || empty($data["owner_id"]) || (auth()->check() && auth()->user()->id !== 1)) {\
+            $data["owner_id"] = auth()->check() ? auth()->user()->id : 1;\
+        }
+        }
     }' "$SERVER_CREATION_SERVICE"
     
-    echo "✅ ServerCreationService modified"
+    echo "✅ ServerCreationService modified with auto-owner"
 fi
 
 # ============================================
@@ -1964,6 +1992,7 @@ echo "7. Anti intip server via Client API"
 echo "8. Anti intip file server orang lain"
 echo "9. Welcome message di panel"
 echo "10. ✅ SIDEBAR FIXED: Menu hanya Servers & Users untuk admin biasa"
+echo "11. ✅ AUTO OWNER FIXED: Create server langsung auto-detect owner"
 echo ""
 echo "🔧 TEST SEKARANG:"
 echo "- Login sebagai admin biasa (bukan ID 1)"
@@ -1971,7 +2000,8 @@ echo "- Sidebar hanya tampilkan: Overview, Servers, Users"
 echo "- Menu lain HILANG"
 echo "- Akses langsung /admin/locations → 403 Error"
 echo "- Akses langsung /admin/nodes → 403 Error"
-echo "- Buat server → Owner otomatis admin tersebut"
+echo "- Buat server → Owner otomatis terisi dengan email/username Anda"
+echo "- Tidak perlu search user, langsung auto-set"
 echo ""
 echo "⚠️  PERHATIAN:"
 echo "- Hard refresh browser: Ctrl+Shift+R"
