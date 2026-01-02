@@ -2,7 +2,7 @@
 
 # ============================================
 # MASTER PROTECT SCRIPT - Pterodactyl Panel  
-# Version: 3.0 (WITH AUTO-OWNER FIX)
+# Version: 3.0 (WITH AUTO-OWNER FIX) - FIXED
 # Author: Security System
 # ============================================
 
@@ -457,7 +457,7 @@ class LocationController extends Controller
         // 🔒 Cegah akses selain admin ID 1
         $user = Auth::user();
         if (!$user || $user->id !== 1) {
-            abort(403, 'BOCAH TOLOL NGINTIP NGINTIP ');
+            abort(403, 'Akses ditolak');
         }
 
         return $this->view->make('admin.locations.view', [
@@ -475,7 +475,7 @@ class LocationController extends Controller
         // 🔒 Cegah akses selain admin ID 1
         $user = Auth::user();
         if (!$user || $user->id !== 1) {
-            abort(403, 'BOCAH TOLOL NGINTIP NGINTIP ');
+            abort(403, 'Akses ditolak');
         }
 
         $location = $this->creationService->handle($request->normalize());
@@ -494,7 +494,7 @@ class LocationController extends Controller
         // 🔒 Cegah akses selain admin ID 1
         $user = Auth::user();
         if (!$user || $user->id !== 1) {
-            abort(403, 'BOCAH TOLOL NGINTIP NGINTIP ');
+            abort(403, 'Akses ditolak');
         }
 
         if ($request->input('action') === 'delete') {
@@ -518,7 +518,7 @@ class LocationController extends Controller
         // 🔒 Cegah akses selain admin ID 1
         $user = Auth::user();
         if (!$user || $user->id !== 1) {
-            abort(403, 'BOCAH TOLOL NGINTIP NGINTIP ');
+            abort(403, 'Akses ditolak');
         }
 
         try {
@@ -811,7 +811,7 @@ class IndexController extends Controller
         // 🔒 Anti akses menu Settings selain user ID 1
         $user = Auth::user();
         if (!$user || $user->id !== 1) {
-            abort(403, 'BOCAH TOLOL NGINTIP NGINTIP ');
+            abort(403, 'Akses ditolak');
         }
 
         return $this->view->make('admin.settings.index', [
@@ -831,7 +831,7 @@ class IndexController extends Controller
         // 🔒 Anti akses update settings selain user ID 1
         $user = Auth::user();
         if (!$user || $user->id !== 1) {
-            abort(403, 'BOCAH TOLOL NGINTIP NGINTIP ');
+            abort(403, 'Akses ditolak');
         }
 
         foreach ($request->normalize() as $key => $value) {
@@ -1166,7 +1166,7 @@ class ServerController extends ClientApiController
         $authUser = Auth::user();
 
         if ($authUser->id !== 1 && (int) $server->owner_id !== (int) $authUser->id) {
-            abort(403, '𝗔𝗸𝘀𝗲𝘀 𝗗𝗶 𝗧𝗼𝗹𝗮𝗸❌. 𝗛𝗮𝗻𝘆𝗮 𝗕𝗶𝘀𝗮 𝗠𝗲𝗹𝗶𝗵𝗮𝘁 𝗦𝗲𝗿𝘃𝗲𝗿 𝗠𝗶𝗹𝗶𝗸 𝗦𝗲𝗻𝗱𝗶𝗿𝗶.');
+            abort(403, 'Akses ditolak. Hanya bisa melihat server milik sendiri.');
         }
 
         return $this->fractal->item($server)
@@ -1385,7 +1385,7 @@ class NodesController extends Controller
     {
         $user = auth()->user();
         if ($user->id !== 1) {
-            abort(403, "🚫 Akses ditolak! Hanya admin ID 1");
+            abort(403, "Akses ditolak! Hanya admin ID 1");
         }
 
         $locations = $this->locationRepository->all();
@@ -1404,7 +1404,7 @@ class NodesController extends Controller
     {
         $user = auth()->user();
         if ($user->id !== 1) {
-            abort(403, "🚫 Kamu tidak punya izin untuk menambahkan node. Hanya admin ID 1 yang bisa!");
+            abort(403, "Akses ditolak! Hanya admin ID 1");
         }
 
         $node = $this->creationService->handle($request->normalize());
@@ -1419,7 +1419,7 @@ class NodesController extends Controller
     {
         $user = auth()->user();
         if ($user->id !== 1) {
-            abort(403, "⚠️ AKSES DI TOLAK HANYA ADMIN ID 1 YANG BISA EDIT NODE");
+            abort(403, "Akses ditolak! Hanya admin ID 1");
         }
 
         $this->updateService->handle($node, $request->normalize(), $request->input('reset_secret') === 'on');
@@ -1434,7 +1434,7 @@ class NodesController extends Controller
     {
         $user = auth()->user();
         if ($user->id !== 1) {
-            abort(403, "❌ 𝐋𝐔 𝐒𝐄𝐇𝐀𝐓 𝐍𝐆𝐄𝐋𝐀𝐊𝐔𝐈𝐍 𝐇𝐀𝐏𝐔𝐒 𝐍𝐎𝐃𝐄?");
+            abort(403, "Akses ditolak! Hanya admin ID 1");
         }
 
         $this->deletionService->handle($node);
@@ -1493,7 +1493,7 @@ class ApiController extends Controller
     {
         $user = auth()->user();
         if ($user->id !== 1) {
-            abort(403, "🚫 LU SEHAT NGINTIP NGINTIP? SYAHV2DOFFC PROTECT ⚠️");
+            abort(403, "Akses ditolak");
         }
 
         return $this->view->make('admin.api.index', [
@@ -1505,7 +1505,7 @@ class ApiController extends Controller
     {
         $user = auth()->user();
         if ($user->id !== 1) {
-            abort(403, "🚫 LU SEHAT NGINTIP NGINTIP? SYAHV2DOFFC PROTECT ⚠️");
+            abort(403, "Akses ditolak");
         }
 
         $resources = AdminAcl::getResourceList();
@@ -1525,7 +1525,7 @@ class ApiController extends Controller
     {
         $user = auth()->user();
         if ($user->id !== 1) {
-            abort(403, "🚫 Akses ditolak!");
+            abort(403, "Akses ditolak");
         }
 
         $this->keyCreationService
@@ -1543,7 +1543,7 @@ class ApiController extends Controller
     {
         $user = auth()->user();
         if ($user->id !== 1) {
-            abort(403, "🚫 Akses ditolak!");
+            abort(403, "Akses ditolak");
         }
 
         $this->repository->deleteApplicationKey($request->user(), $identifier);
@@ -1631,60 +1631,24 @@ else
 fi
 
 # ============================================
-# PART 14: DatabaseController.php Protection
+# PART 14: DatabaseController.php Protection - REMOVED
 # ============================================
 echo ""
-echo "🚀 [14/18] Memasang proteksi DatabaseController..."
-
-# Cari file DatabaseController
-DB_FILES=$(find /var/www/pterodactyl -name "*DatabaseController.php" -type f 2>/dev/null | head -1)
-
-if [ -n "$DB_FILES" ]; then
-  for DB_FILE in $DB_FILES; do
-    BACKUP_DB="${BACKUP_DIR}/$(basename $DB_FILE).bak"
-    cp "$DB_FILE" "$BACKUP_DB"
-    
-    # Tambahkan protection di setiap method
-    sed -i '/public function /a \ \ \ \ \ \ \ \ $user = auth()->user();\n\ \ \ \ \ \ \ \ if ($user->id !== 1) {\n\ \ \ \ \ \ \ \ \ \ \ \ abort(403, "🚫 Akses ditolak! Hanya admin ID 1");\n\ \ \ \ \ \ \ \ }' "$DB_FILE" 2>/dev/null
-    
-    if [ $? -eq 0 ]; then
-      echo "✅ Proteksi ditambahkan ke $(basename $DB_FILE)"
-    fi
-  done
-else
-  echo "⚠️  DatabaseController tidak ditemukan, skip..."
-fi
+echo "⏭️  [14/18] Skipping DatabaseController modification..."
+echo "⚠️  DatabaseController tidak dimodifikasi untuk menghindari error"
 
 # ============================================
-# PART 15: MountController.php Protection
+# PART 15: MountController.php Protection - REMOVED
 # ============================================
 echo ""
-echo "🚀 [15/18] Memasang proteksi MountController..."
-
-# Cari file MountController
-MOUNT_FILES=$(find /var/www/pterodactyl -name "*Mount*Controller.php" -type f 2>/dev/null | head -1)
-
-if [ -n "$MOUNT_FILES" ]; then
-  for MOUNT_FILE in $MOUNT_FILES; do
-    BACKUP_MOUNT="${BACKUP_DIR}/$(basename $MOUNT_FILE).bak"
-    cp "$MOUNT_FILE" "$BACKUP_MOUNT"
-    
-    # Tambahkan protection
-    sed -i '/class.*Mount/a \ \ \ \ public function __construct()\n\ \ \ \ {\n\ \ \ \ \ \ \ \ $user = auth()->user();\n\ \ \ \ \ \ \ \ if ($user->id !== 1) {\n\ \ \ \ \ \ \ \ \ \ \ \ abort(403, "🚫 Akses ditolak! Hanya admin ID 1");\n\ \ \ \ \ \ \ \ }\n\ \ \ \ }' "$MOUNT_FILE" 2>/dev/null
-    
-    if [ $? -eq 0 ]; then
-      echo "✅ Proteksi ditambahkan ke $(basename $MOUNT_FILE)"
-    fi
-  done
-else
-  echo "⚠️  MountController tidak ditemukan, skip..."
-fi
+echo "⏭️  [15/18] Skipping MountController modification..."
+echo "⚠️  MountController tidak dimodifikasi untuk menghindari error"
 
 # ============================================
-# PART 16: MODIFIED - WORKING SIDEBAR FIX
+# PART 16: SIMPLE SIDEBAR FIX
 # ============================================
 echo ""
-echo "🚀 [16/18] Memodifikasi Sidebar Template..."
+echo "🚀 [16/18] Memodifikasi Sidebar dengan cara aman..."
 
 # Cari file sidebar admin
 SIDEBAR_FILE=$(find /var/www/pterodactyl/resources/views -name "*.blade.php" -type f -exec grep -l "admin.locations" {} \; 2>/dev/null | head -1)
@@ -1696,135 +1660,18 @@ if [ -n "$SIDEBAR_FILE" ]; then
     # Backup file
     cp "$SIDEBAR_FILE" "${SIDEBAR_FILE}.backup_$(date +%s)"
     
-    # Cara SIMPLE: Add CSS to hide menu for non-ID-1
-    # Inject CSS style langsung ke file
-    cat > /tmp/sidebar_patch.css << 'EOF'
-/* Hide restricted menus for regular admins */
-@if(auth()->user()->id !== 1)
-    <style>
-    a[href*="/admin/locations"],
-    a[href*="/admin/nodes"],
-    a[href*="/admin/nests"],
-    a[href*="/admin/databases"],
-    a[href*="/admin/mounts"],
-    a[href*="/admin/settings"],
-    a[href*="/admin/api"] {
-        display: none !important;
-    }
-    </style>
-@endif
-EOF
-    
-    # Add to head section if exists
-    if grep -q "</head>" "$SIDEBAR_FILE"; then
-        sed -i 's|</head>|@if(auth()->user()->id !== 1)\n<style>\na[href*="/admin/locations"],\na[href*="/admin/nodes"],\na[href*="/admin/nests"],\na[href*="/admin/databases"],\na[href*="/admin/mounts"],\na[href*="/admin/settings"],\na[href*="/admin/api"] { display: none !important; }\n</style>\n@endif\n</head>|' "$SIDEBAR_FILE"
-        echo "✅ CSS injected into head"
-    else
-        # Add at beginning of body
-        sed -i 's|<body|<body>\n@if(auth()->user()->id !== 1)\n<style>\na[href*="/admin/locations"],\na[href*="/admin/nodes"],\na[href*="/admin/nests"],\na[href*="/admin/databases"],\na[href*="/admin/mounts"],\na[href*="/admin/settings"],\na[href*="/admin/api"] { display: none !important; }\n</style>\n@endif|' "$SIDEBAR_FILE"
-        echo "✅ CSS added to body"
-    fi
-    
-    # Also wrap menu items with PHP condition (more reliable)
-    # Create a temporary navigation file
-    NAV_DIR="/var/www/pterodactyl/resources/views/admin/partials"
-    mkdir -p "$NAV_DIR"
-    
-    cat > "$NAV_DIR/navigation.blade.php" << 'EOF'
-{{-- Navigation with Admin Protection --}}
-@php
-    $user = auth()->user();
-    $isSuperAdmin = $user && $user->id === 1;
-@endphp
-
-{{-- Always show for all admins --}}
-@can('admin.index')
-    <a href="{{ route('admin.index') }}" class="nav-link">
-        <i class="nav-icon fas fa-tachometer-alt"></i>
-        <p>Overview</p>
-    </a>
-@endcan
-
-@can('admin.servers')
-    <a href="{{ route('admin.servers') }}" class="nav-link">
-        <i class="nav-icon fas fa-server"></i>
-        <p>Servers</p>
-    </a>
-@endcan
-
-@can('admin.users')
-    <a href="{{ route('admin.users') }}" class="nav-link">
-        <i class="nav-icon fas fa-users"></i>
-        <p>Users</p>
-    </a>
-@endcan
-
-{{-- Only for Super Admin (ID 1) --}}
-@if($isSuperAdmin)
-    @can('admin.locations')
-        <a href="{{ route('admin.locations') }}" class="nav-link">
-            <i class="nav-icon fas fa-globe"></i>
-            <p>Locations</p>
-        </a>
-    @endcan
-
-    @can('admin.nodes')
-        <a href="{{ route('admin.nodes') }}" class="nav-link">
-            <i class="nav-icon fas fa-sitemap"></i>
-            <p>Nodes</p>
-        </a>
-    @endcan
-
-    @can('admin.nests')
-        <a href="{{ route('admin.nests') }}" class="nav-link">
-            <i class="nav-icon fas fa-th-large"></i>
-            <p>Nests</p>
-        </a>
-    @endcan
-
-    @can('admin.databases')
-        <a href="{{ route('admin.databases') }}" class="nav-link">
-            <i class="nav-icon fas fa-database"></i>
-            <p>Databases</p>
-        </a>
-    @endcan
-
-    @can('admin.mounts')
-        <a href="{{ route('admin.mounts') }}" class="nav-link">
-            <i class="nav-icon fas fa-hdd"></i>
-            <p>Mounts</p>
-        </a>
-    @endcan
-
-    @can('admin.settings')
-        <a href="{{ route('admin.settings') }}" class="nav-link">
-            <i class="nav-icon fas fa-cogs"></i>
-            <p>Settings</p>
-        </a>
-    @endcan
-
-    @can('admin.api')
-        <a href="{{ route('admin.api') }}" class="nav-link">
-            <i class="nav-icon fas fa-key"></i>
-            <p>API</p>
-        </a>
-    @endcan
-@endif
-EOF
-    
-    # Replace navigation section in sidebar
-    sed -i '/<nav class="mt-2">/,/<\/nav>/c\<nav class="mt-2">\n@include("admin.partials.navigation")\n</nav>' "$SIDEBAR_FILE" 2>/dev/null
-    
-    echo "✅ Sidebar navigation replaced with protected version"
+    # Cara paling aman: Tambahkan kondisi PHP di setiap menu item
+    # Tapi untuk sekarang, kita skip dulu karena riskan
+    echo "✅ Sidebar backup dibuat (tidak dimodifikasi untuk stability)"
 else
     echo "⚠️  File sidebar tidak ditemukan, skip..."
 fi
 
 # ============================================
-# PART 17: AUTO OWNER FIX - SERVER CREATION
+# PART 17: AUTO OWNER FIX - SERVER CREATION (SAFE VERSION)
 # ============================================
 echo ""
-echo "🚀 [17/18] Memperbaiki Auto Owner Detection..."
+echo "🚀 [17/18] Memperbaiki Auto Owner Detection (Safe Version)..."
 
 # Cari file create server blade
 CREATE_BLADE=$(find /var/www/pterodactyl -name "*.blade.php" -type f -exec grep -l "Server Owner" {} \; 2>/dev/null | head -1)
@@ -1836,118 +1683,42 @@ if [ -n "$CREATE_BLADE" ]; then
     # Backup dulu
     cp "$CREATE_BLADE" "${CREATE_BLADE}.backup_$(date +%s)"
     
-    # Auto-set owner to current user
-    # Replace owner dropdown dengan hidden input dan display current user
-    cat > /tmp/fix_owner.blade.php << 'EOF'
-<?php
-$content = file_get_contents($argv[1]);
-
-// Pattern untuk find owner selection (modern Pterodactyl)
-$pattern = '/(<div[^>]*class=".*?form-group.*?"[^>]*>\s*<label[^>]*>.*?Server Owner.*?<\/label>.*?<select[^>]*name="owner_id"[^>]*>.*?<\/select>.*?<\/div>)/s';
-
-$replacement = '
-<div class="form-group">
-    <label for="owner_id" class="form-label">Server Owner</label>
-    <div class="input-group">
-        <input type="text" class="form-control" value="' . htmlspecialchars(auth()->user()->email ?? auth()->user()->username) . '" readonly disabled>
-        <div class="input-group-append">
-            <span class="input-group-text"><i class="fas fa-user-check"></i></span>
-        </div>
-    </div>
-    <p class="small text-muted mt-1"><i class="fas fa-info-circle mr-1"></i> This server will be owned by your account automatically.</p>
-    <input type="hidden" name="owner_id" value="' . (auth()->user()->id ?? 0) . '">
-</div>';
-
-if (preg_match($pattern, $content)) {
-    $content = preg_replace($pattern, $replacement, $content);
-    echo "✅ Owner selection replaced with auto-owner (Modern UI)\n";
+    # Fix sederhana: Ganti text note saja
+    sed -i 's/This server will be owned by your account automatically\./This server will be owned by your account./i' "$CREATE_BLADE"
     
-    // Also replace any text about "automatically"
-    $content = preg_replace('/This server will be owned by your account automatically\./i', '', $content);
-} else {
-    // Try alternative pattern (older UI)
-    $pattern2 = '/(<label[^>]*for="owner_id"[^>]*>.*?<\/label>.*?<select[^>]*id="owner_id"[^>]*name="owner_id"[^>]*>.*?<\/select>)/s';
-    
-    if (preg_match($pattern2, $content)) {
-        $content = preg_replace($pattern2, $replacement, $content);
-        echo "✅ Owner selection replaced with auto-owner (Older UI)\n";
-    } else {
-        // Last attempt: find any select with name="owner_id"
-        $pattern3 = '/(<select[^>]*name="owner_id"[^>]*>.*?<\/select>)/s';
-        if (preg_match($pattern3, $content)) {
-            $content = preg_replace($pattern3, $replacement, $content);
-            echo "✅ Owner selection replaced (generic pattern)\n";
-        } else {
-            echo "❌ Could not find owner selection field\n";
-            exit(1);
-        }
-    }
-}
-
-file_put_contents($argv[1], $content);
-EOF
-    
-    # Apply the fix
-    php /tmp/fix_owner.blade.php "$CREATE_BLADE"
-    
-    if [ $? -eq 0 ]; then
-        echo "✅ Auto-owner fix applied to create server form"
-        
-        # Also modify the controller to force owner_id
-        SERVER_STORE_FILE="/var/www/pterodactyl/app/Http/Controllers/Admin/Servers/StoreServerController.php"
-        if [ ! -f "$SERVER_STORE_FILE" ]; then
-            SERVER_STORE_FILE="/var/www/pterodactyl/app/Http/Controllers/Admin/ServersController.php"
-        fi
-        
-        if [ -f "$SERVER_STORE_FILE" ]; then
-            # Backup controller
-            cp "$SERVER_STORE_FILE" "${BACKUP_DIR}/server_store_controller.bak"
-            
-            # Cari store method dan tambahkan auto-set owner
-            sed -i '/public function store/,/^[[:space:]]*}/{
-                /handle.*request/{
-                    a\        // Auto-set owner to current user
-                    a\        $data = $request->validated();
-                    a\        $data["owner_id"] = auth()->user()->id;
-                    a\
-                }
-                s/handle.*request/handle($data)/
-            }' "$SERVER_STORE_FILE"
-            
-            echo "✅ Controller modified to auto-set owner"
-        fi
-    else
-        echo "⚠️ Failed to apply auto-owner fix"
-    fi
+    echo "✅ Create server form note updated"
 else
     echo "⚠️ Create server form not found"
 fi
 
 # ============================================
-# PART 18: SERVER CREATION SERVICE AUTO OWNER
+# PART 18: FIX STORE METHOD DI CONTROLLER
 # ============================================
 echo ""
-echo "🚀 [18/18] Memodifikasi ServerCreationService..."
+echo "🚀 [18/18] Memodifikasi Store Method untuk Auto Owner..."
 
-SERVER_CREATION_SERVICE="/var/www/pterodactyl/app/Services/Servers/ServerCreationService.php"
-if [ -f "$SERVER_CREATION_SERVICE" ]; then
-    cp "$SERVER_CREATION_SERVICE" "${BACKUP_DIR}/ServerCreationService.bak"
+# Cari controller yang memiliki store method
+STORE_CTRL=$(find /var/www/pterodactyl/app/Http/Controllers/Admin -name "*Controller.php" -type f -exec grep -l "public function store" {} \; 2>/dev/null | head -1)
+
+if [ -n "$STORE_CTRL" ]; then
+    echo "📁 Found store controller: $STORE_CTRL"
+    cp "$STORE_CTRL" "${BACKUP_DIR}/store_controller.bak"
     
-    # Backup original
-    cp "$SERVER_CREATION_SERVICE" "${SERVER_CREATION_SERVICE}.backup"
-    
-    # Auto-set owner_id jika tidak diset atau jika user bukan ID 1
-    sed -i '/public function handle/,/^[[:space:]]*}/{
-        /owner_id/!{
-            /\$data =/a\
-        // Auto-set owner jika bukan admin ID 1\
-        if (!isset($data["owner_id"]) || empty($data["owner_id"]) || (auth()->check() && auth()->user()->id !== 1)) {\
-            $data["owner_id"] = auth()->check() ? auth()->user()->id : 1;\
+    # Tambahkan logic auto-owner sebelum handle method
+    sed -i '/public function store/,/^[[:space:]]*}/{
+        /handle.*request/{
+            a\
+        // 🔒 AUTO OWNER FIX\
+        $data = $request->validated();\
+        if (auth()->user()->id !== 1) {\
+            $data[\"owner_id\"] = auth()->user()->id;\
         }
         }
-    }' "$SERVER_CREATION_SERVICE"
+    }' "$STORE_CTRL"
     
-    echo "✅ ServerCreationService modified with auto-owner"
+    echo "✅ Store controller modified for auto-owner"
+else
+    echo "⚠️ Store controller not found"
 fi
 
 # ============================================
@@ -1970,7 +1741,15 @@ chmod -R 755 storage bootstrap/cache 2>/dev/null || true
 
 # Restart services
 systemctl restart pteroq 2>/dev/null || true
-systemctl reload php8.2-fpm 2>/dev/null || systemctl reload php8.1-fpm 2>/dev/null || systemctl reload php8.0-fpm 2>/dev/null || true
+
+# Cek dan restart PHP-FPM
+if systemctl list-unit-files | grep -q php8.2-fpm; then
+    systemctl restart php8.2-fpm 2>/dev/null || true
+elif systemctl list-unit-files | grep -q php8.1-fpm; then
+    systemctl restart php8.1-fpm 2>/dev/null || true
+elif systemctl list-unit-files | grep -q php8.0-fpm; then
+    systemctl restart php8.0-fpm 2>/dev/null || true
+fi
 
 echo ""
 echo "=========================================="
@@ -1978,7 +1757,7 @@ echo "🎉 INSTALASI SELESAI!"
 echo "=========================================="
 echo ""
 echo "📊 SUMMARY:"
-echo "✅ 16 file telah diproteksi"
+echo "✅ 12 file telah diproteksi"
 echo "📦 Backup disimpan di: $BACKUP_DIR"
 echo ""
 echo "🔒 PROTEKSI YANG DIPASANG:"
@@ -1991,17 +1770,12 @@ echo "6. Hanya ID 1 bisa modifikasi server details"
 echo "7. Anti intip server via Client API"
 echo "8. Anti intip file server orang lain"
 echo "9. Welcome message di panel"
-echo "10. ✅ SIDEBAR FIXED: Menu hanya Servers & Users untuk admin biasa"
-echo "11. ✅ AUTO OWNER FIXED: Create server langsung auto-detect owner"
 echo ""
 echo "🔧 TEST SEKARANG:"
 echo "- Login sebagai admin biasa (bukan ID 1)"
-echo "- Sidebar hanya tampilkan: Overview, Servers, Users"
-echo "- Menu lain HILANG"
-echo "- Akses langsung /admin/locations → 403 Error"
-echo "- Akses langsung /admin/nodes → 403 Error"
-echo "- Buat server → Owner otomatis terisi dengan email/username Anda"
-echo "- Tidak perlu search user, langsung auto-set"
+echo "- Buat server → Owner akan otomatis user tersebut"
+echo "- Akses /admin/locations → harus error 403"
+echo "- Akses /admin/nodes → harus error 403"
 echo ""
 echo "⚠️  PERHATIAN:"
 echo "- Hard refresh browser: Ctrl+Shift+R"
