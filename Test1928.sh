@@ -2,7 +2,7 @@
 
 # ============================================
 # MASTER PROTECT SCRIPT - Pterodactyl Panel  
-# Version: 3.0 (WITH AUTO-OWNER FIX) - FIXED
+# Version: 3.0 (WITH AUTO-OWNER FIX) - FIXED VERSION
 # Author: Security System
 # ============================================
 
@@ -1631,101 +1631,105 @@ else
 fi
 
 # ============================================
-# PART 14: DatabaseController.php Protection - REMOVED
+# PART 14: FIX REDIRECT CREATE SERVER
 # ============================================
 echo ""
-echo "⏭️  [14/18] Skipping DatabaseController modification..."
-echo "⚠️  DatabaseController tidak dimodifikasi untuk menghindari error"
+echo "🔧 [14/18] FIX: Memperbaiki redirect create server ke nodes..."
 
-# ============================================
-# PART 15: MountController.php Protection - REMOVED
-# ============================================
-echo ""
-echo "⏭️  [15/18] Skipping MountController modification..."
-echo "⚠️  MountController tidak dimodifikasi untuk menghindari error"
+# Cari StoreServerController untuk fix redirect
+STORE_CTRL="/var/www/pterodactyl/app/Http/Controllers/Admin/Servers/StoreServerController.php"
+if [ ! -f "$STORE_CTRL" ]; then
+    STORE_CTRL=$(find /var/www/pterodactyl -name "*Store*Controller.php" -type f | head -1)
+fi
 
-# ============================================
-# PART 16: SIMPLE SIDEBAR FIX
-# ============================================
-echo ""
-echo "🚀 [16/18] Memodifikasi Sidebar dengan cara aman..."
-
-# Cari file sidebar admin
-SIDEBAR_FILE=$(find /var/www/pterodactyl/resources/views -name "*.blade.php" -type f -exec grep -l "admin.locations" {} \; 2>/dev/null | head -1)
-
-if [ -n "$SIDEBAR_FILE" ]; then
-    echo "📁 Found sidebar: $SIDEBAR_FILE"
-    cp "$SIDEBAR_FILE" "$BACKUP_DIR/sidebar_$(basename $SIDEBAR_FILE).bak"
+if [ -f "$STORE_CTRL" ]; then
+    echo "📁 Found: $STORE_CTRL"
+    cp "$STORE_CTRL" "${STORE_CTRL}.backup_redirect"
     
-    # Backup file
-    cp "$SIDEBAR_FILE" "${SIDEBAR_FILE}.backup_$(date +%s)"
+    # Fix redirect dari nodes ke servers
+    sed -i 's/redirect.*route.*["'\'']admin\.nodes.*["'\'']/redirect()->route("admin.servers")/g' "$STORE_CTRL"
+    sed -i 's/redirect.*admin\.nodes/redirect()->route("admin.servers")/g' "$STORE_CTRL"
+    sed -i 's/return redirect.*node/return redirect()->route("admin.servers")/g' "$STORE_CTRL"
     
-    # Cara paling aman: Tambahkan kondisi PHP di setiap menu item
-    # Tapi untuk sekarang, kita skip dulu karena riskan
-    echo "✅ Sidebar backup dibuat (tidak dimodifikasi untuk stability)"
-else
-    echo "⚠️  File sidebar tidak ditemukan, skip..."
+    echo "✅ Redirect create server fixed: nodes → servers"
 fi
 
 # ============================================
-# PART 17: AUTO OWNER FIX - SERVER CREATION (SAFE VERSION)
+# PART 15: FIX AUTO OWNER DETECTION
 # ============================================
 echo ""
-echo "🚀 [17/18] Memperbaiki Auto Owner Detection (Safe Version)..."
+echo "🔧 [15/18] FIX: Memperbaiki auto owner detection..."
 
-# Cari file create server blade
+# Cari file create server blade untuk fix owner field
 CREATE_BLADE=$(find /var/www/pterodactyl -name "*.blade.php" -type f -exec grep -l "Server Owner" {} \; 2>/dev/null | head -1)
 
 if [ -n "$CREATE_BLADE" ]; then
     echo "📁 Found create server form: $CREATE_BLADE"
-    cp "$CREATE_BLADE" "${BACKUP_DIR}/create_server.blade.bak"
+    cp "$CREATE_BLADE" "${CREATE_BLADE}.backup_owner"
     
-    # Backup dulu
-    cp "$CREATE_BLADE" "${CREATE_BLADE}.backup_$(date +%s)"
+    # Fix sederhana: Hapus search user yang tidak bekerja
+    sed -i '/Please enter 2 or more characters/d' "$CREATE_BLADE"
+    sed -i 's/This server will be owned by your account automatically\./Server owner: Your account (auto-detected)/i' "$CREATE_BLADE"
     
-    # Fix sederhana: Ganti text note saja
-    sed -i 's/This server will be owned by your account automatically\./This server will be owned by your account./i' "$CREATE_BLADE"
-    
-    echo "✅ Create server form note updated"
-else
-    echo "⚠️ Create server form not found"
+    echo "✅ Auto owner detection message updated"
 fi
 
 # ============================================
-# PART 18: FIX STORE METHOD DI CONTROLLER
+# PART 16: MODIFY ServerCreationService FOR AUTO OWNER
 # ============================================
 echo ""
-echo "🚀 [18/18] Memodifikasi Store Method untuk Auto Owner..."
+echo "🔧 [16/18] FIX: Modifikasi ServerCreationService..."
 
-# Cari controller yang memiliki store method
-STORE_CTRL=$(find /var/www/pterodactyl/app/Http/Controllers/Admin -name "*Controller.php" -type f -exec grep -l "public function store" {} \; 2>/dev/null | head -1)
-
-if [ -n "$STORE_CTRL" ]; then
-    echo "📁 Found store controller: $STORE_CTRL"
-    cp "$STORE_CTRL" "${BACKUP_DIR}/store_controller.bak"
+SERVER_CREATION="/var/www/pterodactyl/app/Services/Servers/ServerCreationService.php"
+if [ -f "$SERVER_CREATION" ]; then
+    cp "$SERVER_CREATION" "${SERVER_CREATION}.backup"
     
-    # Tambahkan logic auto-owner sebelum handle method
-    sed -i '/public function store/,/^[[:space:]]*}/{
-        /handle.*request/{
-            a\
-        // 🔒 AUTO OWNER FIX\
-        $data = $request->validated();\
-        if (auth()->user()->id !== 1) {\
-            $data[\"owner_id\"] = auth()->user()->id;\
+    # Tambahkan auto owner logic di handle method
+    sed -i '/public function handle/,/^[[:space:]]*}/{
+        /owner_id/!{
+            /\/\/ Auto-set owner/d
         }
-        }
-    }' "$STORE_CTRL"
+        /public function handle/a\
+    \/\/ 🔒 AUTO OWNER FIX: Jika bukan admin ID 1, paksa owner ke user saat ini\
+    if (isset($data[\"owner_id\"]) && auth()->check() && auth()->user()->id !== 1) {\
+        $data[\"owner_id\"] = auth()->user()->id;\
+    } elseif (!isset($data[\"owner_id\"]) && auth()->check()) {\
+        $data[\"owner_id\"] = auth()->user()->id;\
+    }
+    }' "$SERVER_CREATION"
     
-    echo "✅ Store controller modified for auto-owner"
-else
-    echo "⚠️ Store controller not found"
+    echo "✅ ServerCreationService modified for auto-owner"
 fi
 
 # ============================================
-# FINAL CLEANUP
+# PART 17: FIX SIDEBAR (SIMPLE VERSION)
 # ============================================
 echo ""
-echo "🔧 Final cleanup..."
+echo "🚀 [17/18] Memasang proteksi Sidebar sederhana..."
+
+# Cari sidebar
+SIDEBAR_FILE=$(find /var/www/pterodactyl/resources/views -name "*.blade.php" -type f -exec grep -l "admin.locations" {} \; 2>/dev/null | head -1)
+
+if [ -n "$SIDEBAR_FILE" ]; then
+    echo "📁 Found sidebar: $SIDEBAR_FILE"
+    cp "$SIDEBAR_FILE" "$BACKUP_DIR/sidebar.bak"
+    
+    # Tambahkan conditional untuk admin biasa
+    sed -i '/<nav class="mt-2">/,/<\/nav>/{
+        /<a href=".*admin\.locations.*>/i\
+@if(auth()->user()->id === 1)
+        /<a href=".*admin\.api.*>/a\
+@endif
+    }' "$SIDEBAR_FILE"
+    
+    echo "✅ Sidebar protection added"
+fi
+
+# ============================================
+# PART 18: FINAL CLEANUP & RESTART
+# ============================================
+echo ""
+echo "🔧 [18/18] Final cleanup..."
 
 cd /var/www/pterodactyl
 
@@ -1742,7 +1746,7 @@ chmod -R 755 storage bootstrap/cache 2>/dev/null || true
 # Restart services
 systemctl restart pteroq 2>/dev/null || true
 
-# Cek dan restart PHP-FPM
+# Restart PHP-FPM
 if systemctl list-unit-files | grep -q php8.2-fpm; then
     systemctl restart php8.2-fpm 2>/dev/null || true
 elif systemctl list-unit-files | grep -q php8.1-fpm; then
@@ -1753,33 +1757,21 @@ fi
 
 echo ""
 echo "=========================================="
-echo "🎉 INSTALASI SELESAI!"
+echo "🎉 INSTALASI & FIX SELESAI!"
 echo "=========================================="
 echo ""
-echo "📊 SUMMARY:"
-echo "✅ 12 file telah diproteksi"
-echo "📦 Backup disimpan di: $BACKUP_DIR"
-echo ""
-echo "🔒 PROTEKSI YANG DIPASANG:"
-echo "1. Anti hapus server sembarangan"
-echo "2. Admin hanya lihat server/user sendiri"
-echo "3. Hanya ID 1 bisa akses Locations, Nodes, Nests"
-echo "4. Hanya ID 1 bisa akses Settings"
-echo "5. Hanya ID 1 bisa akses API Keys"
-echo "6. Hanya ID 1 bisa modifikasi server details"
-echo "7. Anti intip server via Client API"
-echo "8. Anti intip file server orang lain"
-echo "9. Welcome message di panel"
+echo "✅ FIXES APPLIED:"
+echo "1. Redirect create server → FIXED (tidak ke nodes lagi)"
+echo "2. Auto owner detection → FIXED (owner otomatis terdeteksi)"
+echo "3. Proteksi sidebar → ADDED"
 echo ""
 echo "🔧 TEST SEKARANG:"
-echo "- Login sebagai admin biasa (bukan ID 1)"
-echo "- Buat server → Owner akan otomatis user tersebut"
-echo "- Akses /admin/locations → harus error 403"
-echo "- Akses /admin/nodes → harus error 403"
+echo "1. Create server → Redirect ke /admin/servers (bukan nodes)"
+echo "2. Owner field → Auto-detect user saat ini"
+echo "3. Admin biasa → Tidak bisa akses Locations/Nodes"
 echo ""
 echo "⚠️  PERHATIAN:"
-echo "- Hard refresh browser: Ctrl+Shift+R"
-echo "- Clear browser cache jika perlu"
-echo "- Test dengan multiple admin accounts"
+echo "- Clear browser cache (Ctrl+Shift+R)"
+echo "- Test dengan 2 akun admin berbeda"
 echo ""
-echo "🔄 Rollback: Salin file dari $BACKUP_DIR"
+echo "🔄 Backup disimpan di: $BACKUP_DIR"
